@@ -196,17 +196,17 @@ if(/view=back/.test(location.hash)) VIEW='back';
 render();
 </script>
 <script>document.querySelector('.side-head').addEventListener('click',()=>document.querySelector('.side').classList.toggle('open'));</script>
-<button id="toTop" type="button" aria-label="See your fit"><img id="toTopImg" alt="">&#8593; See your fit</button>
+<button id="toTop" type="button" aria-label="Go to top">&#8593; Go to top</button>
 <script>
 (function(){
   const btn=document.getElementById('toTop'), box=document.querySelector('.stage');
   const visible=()=>{const r=box.getBoundingClientRect(); return r.bottom>60 && r.top<innerHeight-60;};
   document.addEventListener('click',e=>{
     const card=e.target.closest('.card,.fitcard'); if(!card) return;
-    setTimeout(()=>{ const im=card.querySelector('img'); if(im) document.getElementById('toTopImg').src=im.src; if(!visible()) btn.classList.add('show'); },50);
+    setTimeout(()=>{ if(!visible()) btn.classList.add('show'); },50);
   });
   btn.addEventListener('click',()=>{ btn.classList.remove('show'); const y=box.getBoundingClientRect().top+scrollY-10; const t=Math.max(0,y); window.scrollTo({top:t,behavior:'smooth'}); setTimeout(()=>{ if(Math.abs(scrollY-t)>40) window.scrollTo(0,t); },700); });
-  addEventListener('scroll',()=>{ if(visible()) btn.classList.remove('show'); },{passive:true});
+  const upd=()=>btn.classList.toggle('show', !visible()); addEventListener('scroll',upd,{passive:true}); setInterval(upd,500);
 })();
 </script>
 </body>
