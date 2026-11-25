@@ -96,6 +96,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:18p
 .stage.noback .backmsg{display:flex}
 .stage.noback img.av{opacity:.25;filter:grayscale(1)}
 .stage img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
+#toTop{position:fixed;right:14px;bottom:18px;z-index:50;display:none;align-items:center;gap:6px;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:12px 16px;font:700 12px 'Archivo Narrow',sans-serif;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#toTop img{width:26px;height:26px;object-fit:contain;background:#fff;border-radius:50%}
+@media (max-width:900px){#toTop.show{display:flex}}
 </style>
 </head>
 <body>
@@ -193,5 +196,18 @@ if(/view=back/.test(location.hash)) VIEW='back';
 render();
 </script>
 <script>document.querySelector('.side-head').addEventListener('click',()=>document.querySelector('.side').classList.toggle('open'));</script>
+<button id="toTop" type="button" aria-label="See your fit"><img id="toTopImg" alt="">&#8593; See your fit</button>
+<script>
+(function(){
+  const btn=document.getElementById('toTop'), box=document.querySelector('.stage');
+  const visible=()=>{const r=box.getBoundingClientRect(); return r.bottom>60 && r.top<innerHeight-60;};
+  document.addEventListener('click',e=>{
+    const card=e.target.closest('.card,.fitcard'); if(!card) return;
+    setTimeout(()=>{ const im=card.querySelector('img'); if(im) document.getElementById('toTopImg').src=im.src; if(!visible()) btn.classList.add('show'); },50);
+  });
+  btn.addEventListener('click',()=>{ btn.classList.remove('show'); const y=box.getBoundingClientRect().top+scrollY-10; const t=Math.max(0,y); window.scrollTo({top:t,behavior:'smooth'}); setTimeout(()=>{ if(Math.abs(scrollY-t)>40) window.scrollTo(0,t); },700); });
+  addEventListener('scroll',()=>{ if(visible()) btn.classList.remove('show'); },{passive:true});
+})();
+</script>
 </body>
 </html>
