@@ -78,6 +78,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:18p
   .card .meta{padding:8px}
   .card .name{font-size:13px}
 }
+.cat.hot{border-color:#e0442b;color:#e0442b}
+.trending .grid.fits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.fitcard{border:1px solid var(--line);background:#fff;text-align:left;padding:0;display:flex;flex-direction:column}
+.fitcard:hover{border-color:#bdbdb8}
+.fitcard .mosaic{display:grid;grid-template-columns:1fr 1fr;aspect-ratio:1/1;background:var(--soft);gap:2px}
+.fitcard .mosaic img{width:100%;height:100%;object-fit:contain;background:#fff}
+.fitcard .meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.fitcard .wear{margin-top:6px;font:700 11px 'Archivo Narrow',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#e0442b}
+.soon{border:1px dashed var(--line);padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
@@ -108,7 +117,27 @@ $('#prog').textContent = ITEMS.length+' of '+TOTAL+' pieces dressed';
 $('#cats').innerHTML = CATS.map(c=>`<button class="cat" data-go="${c.id}">${c.label}</button>`).join('');
 $('#sections').innerHTML = CATS.map(c=>`<section class="section" id="sec-${c.id}"><h2>${c.label}</h2><p class="hint">One piece per category: picking another swaps the one being worn.</p><div class="grid">${
   ITEMS.filter(i=>i.cat===c.id).map(i=>`<button class="card" data-id="${i.id}"><span class="tag">Wearing</span><span class="num">#${i.n}</span><span class="ph"><img src="${i.img}" alt=""></span><span class="meta"><span class="brand">${i.brand||''}</span><span class="name">${i.name}</span><span class="price">${money(i.price)}</span></span></button>`).join('')}</div></section>`).join('');
+/* ---------- Trending fits: each fit is a list of item ids already on the site ---------- */
+const FITS = [
+  // {name:'Fit name', items:['i49','i13','i58']},
+];
+function renderTrending(){
+  const fits=FITS.map((f,k)=>({...f,k,its:f.items.map(id=>ITEMS.find(i=>i.id===id)).filter(Boolean)})).filter(f=>f.its.length);
+  const body = fits.length ? `<div class="grid fits">${fits.map(f=>`<button class="fitcard" data-fit="${f.k}"><span class="mosaic">${f.its.slice(0,4).map(i=>`<img src="${i.img}" alt="">`).join('')}</span><span class="meta"><span class="brand">${f.its.length} pieces</span><span class="name">${f.name}</span><span class="price">${money(f.its.reduce((a,i)=>a+(i.price||0),0))}</span><span class="wear">Wear this fit</span></span></button>`).join('')}</div>`
+    : `<div class="soon">Fits coming soon. Check back for the hottest combos.</div>`;
+  const sec=document.createElement('section'); sec.className='section trending'; sec.id='sec-trending';
+  sec.innerHTML=`<h2>&#128293; Trending</h2><p class="hint">Full fits picked from the shop. Tap one to try the whole look.</p>${body}`;
+  $('#sections').prepend(sec);
+  $('#cats').insertAdjacentHTML('afterbegin','<button class="cat hot" data-go="trending">&#128293; Trending</button>');
+}
+renderTrending();
 document.addEventListener('click',e=>{
+  const fc=e.target.closest('[data-fit]'); if(!fc) return;
+  e.stopPropagation();
+  Object.keys(sel).forEach(k=>delete sel[k]); last=null;
+  FITS[+fc.dataset.fit].items.forEach(id=>{const it=ITEMS.find(i=>i.id===id); if(it){sel[it.cat]=id; last=id;}});
+  render(); document.querySelector('.side').scrollIntoView({behavior:'smooth',block:'nearest'});
+},true);document.addEventListener('click',e=>{
   const go=e.target.closest('[data-go]'); if(go){document.getElementById('sec-'+go.dataset.go).scrollIntoView({behavior:'smooth'});return;}
   const rm=e.target.closest('[data-rm]'); if(rm){toggle(rm.dataset.rm);return;}
   const card=e.target.closest('.card'); if(card) toggle(card.dataset.id);
